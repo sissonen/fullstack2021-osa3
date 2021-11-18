@@ -51,12 +51,27 @@ app.get('/info', (request, response) => {
 })
 
 app.post('/api/persons', (request, response) => {
-  const person = request.body
+  const newPerson = request.body
+  if (!newPerson.name) {
+    return response.status(400).json({
+      error: 'A person needs a name.'
+    })
+  }
+  if (!newPerson.number) {
+    return response.status(400).json({
+      error: 'A person needs a number.'
+    })
+  }
+  if (persons.find(person => person.name === newPerson.name)) {
+    return response.status(400).json({
+      error: 'Person with name ' + newPerson.name + ' already exists. Give another, please.'
+    })
+  }
   const newId = Math.floor(Math.random() * 10000)
-  person.id = newId
-  persons = persons.concat(person)
+  newPerson.id = newId
+  persons = persons.concat(newPerson)
   
-  response.json(person)
+  response.json(newPerson)
 })
 
 app.delete('/api/persons/:id', (request, response) => {
