@@ -3,7 +3,21 @@ const morgan = require('morgan')
 const app = express()
 
 app.use(express.json())
-app.use(morgan('tiny'))
+app.use(morgan((tokens, req, res) => {
+  let logArr = [
+    tokens.method(req, res),
+    tokens.url(req, res),
+    tokens.status(req, res),
+    tokens.res(req, res, 'content-length'), '-',
+    tokens['response-time'](req, res), 'ms'
+  ]
+  if (tokens.method(req, res) === 'POST') {
+    logArr = logArr.concat(JSON.stringify(req.body))
+  }
+  
+  return logArr.join(' ')
+}
+))
 
 let persons = [
   {
@@ -35,7 +49,6 @@ app.get('/api/persons', (request, response) => {
 app.get('/api/persons/:id', (request, response) => {
   const id = Number(request.params.id)
   const person = persons.find(person => person.id === id)
-  console.log(id, person)
   if (person) {
     response.json(person)
   } else {
@@ -53,24 +66,28 @@ app.get('/info', (request, response) => {
 })
 
 app.post('/api/persons', (request, response) => {
-  const newPerson = request.body
-  if (!newPerson.name) {
+  const reqPerson = request.body
+  if (!reqPerson.name) {
     return response.status(400).json({
       error: 'A person needs a name.'
     })
   }
-  if (!newPerson.number) {
+  if (!reqPerson.number) {
     return response.status(400).json({
       error: 'A person needs a number.'
     })
   }
-  if (persons.find(person => person.name === newPerson.name)) {
+  if (persons.find(person => person.name === reqPerson.name)) {
     return response.status(400).json({
-      error: 'Person with name ' + newPerson.name + ' already exists. Give another, please.'
+      error: 'Person with name ' + reqPerson.name + ' already exists. Give another, please.'
     })
   }
   const newId = Math.floor(Math.random() * 10000)
-  newPerson.id = newId
+  const newPerson = {
+    "name": reqPerson.name,
+    "number": reqPerson.number,
+    "id": newId
+  }
   persons = persons.concat(newPerson)
   
   response.json(newPerson)
