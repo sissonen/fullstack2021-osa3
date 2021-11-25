@@ -1,7 +1,9 @@
+require('dotenv').config()
 const express = require('express')
 const morgan = require('morgan')
 const cors = require('cors')
 const app = express()
+const Person = require('./models/person')
 
 app.use(express.static('puhelinluettelo/build'))
 app.use(express.json())
@@ -22,7 +24,7 @@ app.use(morgan((tokens, req, res) => {
 }
 ))
 
-let persons = [
+/*let persons = [
   {
     "name": "Arto Hellas",
     "number": "040-123456",
@@ -43,10 +45,12 @@ let persons = [
     "number": "39-23-6423122",
     "id": 4
   }
-]
+]*/
 
 app.get('/api/persons', (request, response) => {
-  response.json(persons)
+  Person.find({}).then(persons => {
+    response.json(persons)
+  })
 })
 
 app.get('/api/persons/:id', (request, response) => {
