@@ -3,7 +3,6 @@ const express = require('express')
 const morgan = require('morgan')
 const cors = require('cors')
 const app = express()
-//const BSON = require('bson')
 const Person = require('./models/person')
 
 const testObjectId = new RegExp("^[0-9a-fA-F]{24}$")
@@ -36,7 +35,6 @@ app.get('/api/persons', (request, response) => {
 app.get('/api/persons/:id', (request, response) => {
 
   if (testObjectId.test(request.params.id)) {
-    //const id = request.params.id //new BSON.ObjectId(request.params.id)
     Person
       .findById(request.params.id)
       .then(person => {

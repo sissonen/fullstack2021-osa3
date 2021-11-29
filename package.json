@@ -26,7 +26,6 @@
     "nodemon": "^2.0.15"
   },
   "dependencies": {
-    "bson": "^4.6.0",
     "cors": "^2.8.5",
     "dotenv": "^10.0.0",
     "express": "^4.17.1",
