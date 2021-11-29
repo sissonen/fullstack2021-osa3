@@ -3,8 +3,10 @@ const express = require('express')
 const morgan = require('morgan')
 const cors = require('cors')
 const app = express()
-const BSON = require('bson')
+//const BSON = require('bson')
 const Person = require('./models/person')
+
+const testObjectId = new RegExp("^[0-9a-fA-F]{24}$")
 
 app.use(express.static('puhelinluettelo/build'))
 app.use(express.json())
@@ -33,22 +35,23 @@ app.get('/api/persons', (request, response) => {
 
 app.get('/api/persons/:id', (request, response) => {
 
-  const testObjectId = new RegExp("^[0-9a-fA-F]{24}$")
-
   if (testObjectId.test(request.params.id)) {
-    const id = new BSON.ObjectId(request.params.id)
-    Person.findById(id).then(person => {
-      if (person) {
-        response.json(person)
-      } else {
-        response.status(404).end()
-      }
-    })
-    .catch((error) => {
-      response.send('Failed to find object with given id.')
-    })
+    //const id = request.params.id //new BSON.ObjectId(request.params.id)
+    Person
+      .findById(request.params.id)
+      .then(person => {
+        if (person) {
+          response.json(person)
+        } else {
+          response.status(404).end()
+        }
+      })
+      .catch((error) => {
+        console.log(error)
+        response.status(400).send({error: 'Something went wrong.'})
+      })
   } else {
-    response.send('Id is not valid')
+    response.status(400).send({error: 'Id is not valid'})
   }
 
 })
@@ -77,11 +80,6 @@ app.post('/api/persons', (request, response) => {
       error: 'A person needs a number.'
     })
   }
-  /*if (persons.find(person => person.name === reqPerson.name)) {
-    return response.status(400).json({
-      error: 'Person with name ' + reqPerson.name + ' already exists. Give another, please.'
-    })
-  }*/
   const newPerson = new Person({
     "name": reqPerson.name,
     "number": reqPerson.number,
@@ -93,9 +91,18 @@ app.post('/api/persons', (request, response) => {
 })
 
 app.delete('/api/persons/:id', (request, response) => {
-  const id = Number(request.params.id)
-  persons = persons.filter(person => person.id !== id)
-  response.status(204).end()
+  if (testObjectId.test(request.params.id)) {
+    Person.findByIdAndUpdate(request.params.id)
+      .then(result => {
+        response.status(204).end()
+      })
+      .catch(error => {
+        console.log(error)
+        response.status(500).end()
+      })
+  } else {
+    response.status(400).send({error: 'Id is not valid'})
+  }
 })
 
 const PORT = process.env.PORT || 3001
