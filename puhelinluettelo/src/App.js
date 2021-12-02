@@ -45,9 +45,12 @@ const App = () => {
             .updatePerson(existingPerson.id, updatedPerson)
             .then(returnedData => {
               setPersons(persons.map(person => person.id !== returnedData.id ? person : returnedData))
+              setNotificationMsg({msg: 'Updated person ' + newName + '\'s number to ' + newNumber, level: 'info'})
+            })
+            .catch(error => {
+              setNotificationMsg({msg: 'Failed to update ' + newName + '. Error: ' + error.response.data.error, level: 'error'})
             })
           
-          setNotificationMsg({msg: 'Updated person ' + newName + '\'s number to ' + newNumber, level: 'info'});
           setTimeout(() => {
             setNotificationMsg(null)
           }, 3000)

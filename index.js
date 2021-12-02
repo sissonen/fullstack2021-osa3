@@ -71,15 +71,39 @@ app.post('/api/persons', (request, response, next) => {
   else if (!reqPerson.number) {
     next({'name': 'InsufficientDataError', 'message': 'A person needs a number.'})
   } else {
-  const newPerson = new Person({
-    "name": reqPerson.name,
-    "number": reqPerson.number,
-  })
+    const newPerson = new Person({
+      "name": reqPerson.name,
+      "number": reqPerson.number,
+    })
   
-  newPerson.save().then(savedPerson => {
-    response.json(savedPerson)
-  })
-  .catch(error => next(error))
+    newPerson.save().then(savedPerson => {
+      response.json(savedPerson)
+    })
+    .catch(error => next(error))
+  }
+})
+
+app.put('/api/persons/:id', (request, response, next) => {
+  const reqPerson = request.body
+  if (!reqPerson.name) {
+    next({'name': 'InsufficientDataError', 'message': 'A person needs a name.'})
+  }
+  else if (!reqPerson.number) {
+    next({'name': 'InsufficientDataError', 'message': 'A person needs a number.'})
+  } else {
+    const newPerson = {
+      name: reqPerson.name,
+      number: reqPerson.number
+    }
+    if (testObjectId.test(request.params.id)) {
+      Person.findByIdAndUpdate(request.params.id, newPerson, { new: true })
+        .then(updatedPerson => {
+          response.json(updatedPerson)
+        })
+        .catch(error => next(error))
+    } else {
+      next({'name': 'CastError', 'message': 'Id format is not correct.'})
+    }
   }
 })
 
