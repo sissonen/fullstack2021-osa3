@@ -32,7 +32,7 @@ app.get('/api/persons', (request, response) => {
   })
 })
 
-app.get('/api/persons/:id', (request, response) => {
+app.get('/api/persons/:id', (request, response, next) => {
 
   if (testObjectId.test(request.params.id)) {
     Person
@@ -44,12 +44,9 @@ app.get('/api/persons/:id', (request, response) => {
           response.status(404).end()
         }
       })
-      .catch((error) => {
-        console.log(error)
-        response.status(400).send({error: 'Something went wrong.'})
-      })
+      .catch(error => next(error))
   } else {
-    response.status(400).send({error: 'Id is not valid'})
+    next({'name': 'CastError', 'message': 'Id format is not correct.'})
   }
 
 })
@@ -65,19 +62,15 @@ app.get('/info', (request, response) => {
   })
 })
 
-app.post('/api/persons', (request, response) => {
+app.post('/api/persons', (request, response, next) => {
   
   const reqPerson = request.body
   if (!reqPerson.name) {
-    return response.status(400).json({
-      error: 'A person needs a name.'
-    })
+    next({'name': 'InsufficientDataError', 'message': 'A person needs a name.'})
   }
-  if (!reqPerson.number) {
-    return response.status(400).json({
-      error: 'A person needs a number.'
-    })
-  }
+  else if (!reqPerson.number) {
+    next({'name': 'InsufficientDataError', 'message': 'A person needs a number.'})
+  } else {
   const newPerson = new Person({
     "name": reqPerson.name,
     "number": reqPerson.number,
@@ -86,22 +79,31 @@ app.post('/api/persons', (request, response) => {
   newPerson.save().then(savedPerson => {
     response.json(savedPerson)
   })
+  .catch(error => next(error))
+  }
 })
 
-app.delete('/api/persons/:id', (request, response) => {
+app.delete('/api/persons/:id', (request, response, next) => {
   if (testObjectId.test(request.params.id)) {
-    Person.findByIdAndUpdate(request.params.id)
+    Person.findByIdAndRemove(request.params.id)
       .then(result => {
         response.status(204).end()
       })
-      .catch(error => {
-        console.log(error)
-        response.status(500).end()
-      })
+      .catch(error => next(error))
   } else {
-    response.status(400).send({error: 'Id is not valid'})
+    next({'name': 'CastError', 'message': 'Id format is not correct.'})
   }
 })
+
+const errorHandler = (error, request, response, next) => {
+  console.error(error)
+  if (error.name === 'CastError' ||
+      error.name === 'InsufficientDataError') {
+    return response.status(400).json({error: error.message})
+  }
+  next(error)
+}
+app.use(errorHandler)
 
 const PORT = process.env.PORT || 3001
 app.listen(PORT, () => {

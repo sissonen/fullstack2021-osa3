@@ -28,8 +28,11 @@ const App = () => {
         .addPerson(newPerson)
         .then(returnedData => {
           setPersons(persons.concat(returnedData))
+          setNotificationMsg({msg: 'Added new person "' + newName + '" with number ' + newNumber, level: 'info'});
         })
-      setNotificationMsg({msg: 'Added new person "' + newName + '" with number ' + newNumber, level: 'info'});
+        .catch(error => {
+          setNotificationMsg({msg: 'Adding new person failed: ' + error.response.data.error, level: 'error'});
+        })
       setTimeout(() => {
         setNotificationMsg(null)
       }, 3000)
