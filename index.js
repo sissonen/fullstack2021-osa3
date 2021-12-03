@@ -5,7 +5,7 @@ const cors = require('cors')
 const app = express()
 const Person = require('./models/person')
 
-const testObjectId = new RegExp("^[0-9a-fA-F]{24}$")
+const testObjectId = new RegExp('^[0-9a-fA-F]{24}$')
 
 app.use(express.static('puhelinluettelo/build'))
 app.use(express.json())
@@ -72,14 +72,16 @@ app.post('/api/persons', (request, response, next) => {
     next({'name': 'InsufficientDataError', 'message': 'A person needs a number.'})
   } else {
     const newPerson = new Person({
-      "name": reqPerson.name,
-      "number": reqPerson.number,
+      'name': reqPerson.name,
+      'number': reqPerson.number,
     })
   
-    newPerson.save().then(savedPerson => {
-      response.json(savedPerson)
-    })
-    .catch(error => next(error))
+    newPerson
+      .save()
+      .then(savedPerson => {
+        response.json(savedPerson)
+      })
+      .catch(error => next(error))
   }
 })
 
@@ -110,7 +112,7 @@ app.put('/api/persons/:id', (request, response, next) => {
 app.delete('/api/persons/:id', (request, response, next) => {
   if (testObjectId.test(request.params.id)) {
     Person.findByIdAndRemove(request.params.id)
-      .then(result => {
+      .then(() => {
         response.status(204).end()
       })
       .catch(error => next(error))
